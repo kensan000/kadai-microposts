@@ -44,9 +44,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(Micropost::class);
     }
-    
-    
-    
      /**
      * このユーザがフォロー中のユーザ。（ Userモデルとの関係を定義）
      */
@@ -54,7 +51,6 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(User::class, 'user_follow', 'user_id', 'follow_id')->withTimestamps();
     }
-    
     /**
      * このユーザをフォロー中のユーザ。（ Userモデルとの関係を定義）
      */
@@ -62,13 +58,17 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(User::class, 'user_follow', 'follow_id', 'user_id')->withTimestamps();
     }
+    public function favorites()
+    {
+        return $this->belongsToMany(User::class, 'user_follow', 'user_id', 'micropost_id')->withTimestamps();
+    }
     
     /**
      * このユーザに関係するモデルの件数をロードする。
      */
     public function loadRelationshipCounts()
     {
-        $this->loadCount(['microposts','followings','followers']);
+        $this->loadCount(['microposts','followings','followers', 'favorites']);
     }
     
     /**
@@ -139,6 +139,35 @@ class User extends Authenticatable
         $userIds[] = $this->id;
         // それらのユーザが所有する投稿に絞り込む
         return Micropost::whereIn('user_id', $userIds);
+    }
+
+    public function favorite($userId)
+    {
+        $exist = $this->is_favorite($userId);
+        $its_me = $this->id == $userId;
+        
+        if($exist || $ its_me) {
+            return false;
+        } else {
+            $this->favorites()->attach($userId);
+            return true;
+        }
+    }
+    public function unfavorite($userId)
+    {
+        $exist = $this->is_favorite($userId);
+        $its_me = $this->id == $userId;
+        
+        if($exist && !$its_me) {
+            $this->favorites()->detach($userId);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public function is_favorites($userId)
+    {
+        return $this->favorites()->where('micropost_id', userId)->exists();
     }
 }
     
