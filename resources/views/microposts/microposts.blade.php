@@ -13,16 +13,30 @@
                     <div>
                         {{-- 投稿内容 --}}
                         <p class="mb-0">{!! nl2br(e($micropost->content)) !!}</p>
-                    </div>
-                    <div>
-                        @include('user_favorite.favorite_button')
                         
+                    </div>
+                    
+                    <div>
+                        <div class="d-flex">
+                        @include('user_favorite.favorite_button')
+                        @if (Auth::user()->is_favorites($micropost->id))
+                        {{-- お気に入り解除ボタンのフォーム --}}
+                        {!! Form::open(['route' => ['favorites.unfavorite', $micropost->id], 'method' => 'delete']) !!}
+                        {!! Form::submit('Unfavorite', ['class' => "btn btn-danger btn-block"]) !!}
+                        {!! Form::close() !!}
+                        @else
+                        {{-- お気に入りボタンのフォーム --}}
+                        {!! Form::open(['route' => ['favorites.favorite', $micropost->id]]) !!}
+                        {!! Form::submit('Favorite', ['class' => "btn btn-primary btn-block"]) !!}
+                        {!! Form::close() !!}
+                        @endif
                         @if (Auth::id() == $micropost->user_id)
                             {{-- 投稿削除ボタンのフォーム --}}
                             {!! Form::open(['route' => ['microposts.destroy', $micropost->id], 'method' => 'delete']) !!}
-                                {!! Form::submit('Delete', ['class' => 'btn btn-danger btn-sm']) !!}
+                                {!! Form::submit('Delete', ['class' => 'btn btn-danger btn-block']) !!}
                             {!! Form::close() !!}
                         @endif
+                        </div>
                     </div>
                 </div>
             </li>
